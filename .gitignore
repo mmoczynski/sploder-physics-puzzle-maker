@@ -8,6 +8,7 @@ outDir
 
 # Other files and folders
 .settings/
+.vscode
 
 # Executables
 *.swf

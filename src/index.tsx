@@ -37,76 +37,132 @@ function TrayItem({name}) {
     return <li>{name}</li>
 }
 
+interface TrayItemDefinition {
+    title: string
+}
 
+interface TrayDefinition {
+
+    /*** Name that will appear in left bar */
+    title: string,
+    items: Array<TrayItemDefinition>
+}
+
+const trayDefinitions:Array<TrayDefinition> = [
+
+    {
+        title: "Prefabs",
+        items: [
+            { title : "Player" },
+            { title : "Baddie" },
+            { title : "Platform" },
+            { title : "Coin" },
+            { title : "Spikes" },
+            { title : "ExtraLife" },
+            { title : "KeyDoor" },
+            { title : "Ship" },
+            { title : "Turret" },
+            { title : "Robot" },
+            { title : "Balloon" },
+            { title : "TurretCar" }
+        ]
+    },
+
+    {
+        title: "Physics",
+        items: [
+            { title:"Motor" },
+            { title:"Bouncer" },
+            { title:"PinJoint" },
+            { title:"Groove" },
+            { title:"Spring-T" },
+            { title:"Spring-L" },
+            { title:"GearJoint" }
+        ]
+    },
+
+    {
+        title: "Controls",
+        items: [
+            { title: "Rotator" },
+            { title: "Mover" },
+            { title: "Slider" },
+            { title: "Jumper" },
+            { title: "Arcade Mover" },
+            { title: "Selector" },
+            { title: "Adder" },
+            { title: "Launcher" },
+            { title: "Aimer" },
+            { title: "Dragger" },
+            { title: "Thruster" },
+            { title: "Clicker" }
+        ]
+    },
+
+    {
+        title: "Widgets",
+        items: [
+            { title: "Elevator" },
+            { title: "Spawner" },
+            { title: "Connect" },
+            { title: "Factory" },
+            { title: "EventLink" },
+            { title: "Switcher" },
+            { title: "E-Magnet" },
+            { title: "Pointer" },
+            { title: "Propeller" }
+        ]
+    }
+
+];
 
 function TrayCollection() {
     
     var [state, setState] = useState(0);
 
+    // Closure for index
     function clickGen(index) {
         return function() {
             setState(index);
             alert(index);
         }
     }
-    
+   
     return(
         <div className="tray-collection col left">
             <ul className="tray-tabs">
-                <li onClick={clickGen(0)}>Prefabs</li>
-                <li onClick={clickGen(1)}>Physics</li>  
-                <li onClick={clickGen(2)}>Controls</li>
-                <li onClick={clickGen(3)}>Widgets</li>
+                {
+                    trayDefinitions.map(function(trayDefinition, index){
+                        return <div onClick={clickGen(index)} className="tray-name">{trayDefinition.title}</div>
+                    })
+                }
             </ul>
             <div className="tray-containers">
-                <Tray hidden={state === 0 ? "true" : "false"}>
-                    <TrayItem name="Player"/>
-                    <TrayItem name="Baddie"/>
-                    <TrayItem name="Platform"/>
-                    <TrayItem name="Coin"/>
-                    <TrayItem name="Spikes"/>
-                    <TrayItem name="ExtraLife"/>
-                    <TrayItem name="KeyDoor"/>
-                    <TrayItem name="Ship"/>
-                    <TrayItem name="Turret"/>
-                    <TrayItem name="Robot"/>
-                    <TrayItem name="Balloon"/>
-                    <TrayItem name="TurretCar"/>
-                </Tray>
-                <Tray hidden={state === 1 ? "true" : "false"}>
-                    <TrayItem name="Motor"/>
-                    <TrayItem name="Bouncer"/>
-                    <TrayItem name="PinJoint"/>
-                    <TrayItem name="Groove"/>
-                    <TrayItem name="Spring-T"/>
-                    <TrayItem name="Spring-L"/>
-                    <TrayItem name="GearJoint"/>
-                </Tray>
-                <Tray hidden={state === 2 ? "true" : "false"}>
-                    <TrayItem name="Rotator"/>
-                    <TrayItem name="Mover"/>
-                    <TrayItem name="Slider"/>
-                    <TrayItem name="Jumper"/>
-                    <TrayItem name="Arcade Mover"/>
-                    <TrayItem name="Selector"/>
-                    <TrayItem name="Adder"/>
-                    <TrayItem name="Launcher"/>
-                    <TrayItem name="Aimer"/>
-                    <TrayItem name="Dragger"/>
-                    <TrayItem name="Thruster"/>
-                    <TrayItem name="Clicker"/>
-                </Tray>
-                <Tray hidden={state === 3 ? "true" : "false"}>
-                    <TrayItem name="Elevator"/>
-                    <TrayItem name="Spawner"/>
-                    <TrayItem name="Connect"/>
-                    <TrayItem name="Factory"/>
-                    <TrayItem name="EventLink"/>
-                    <TrayItem name="Switcher"/>
-                    <TrayItem name="E-Magnet"/>
-                    <TrayItem name="Pointer"/>
-                    <TrayItem name="Propeller"/>
-                </Tray>
+                {
+
+                    // Interate through tray definitions to create elements for each using Array.map method
+                    trayDefinitions.map(function(trayDefinition, index){
+
+                        let s:string;
+
+                        // Set class for tray depending on selection state
+                        if(index === state) {
+                            s = "shown tray"  
+                        }
+
+                        else {
+                            s = "hidden tray"
+                        }
+
+                        return (
+                            <ul className={s}>
+                                {trayDefinition.items.map(function(trayItemDefinition){
+                                    return <li>{trayItemDefinition.title}</li>
+                                })}
+                            </ul>
+                        )
+                    })
+                }
             </div>
         </div>
     );

@@ -16,34 +16,34 @@ const ColorTools = {}
  * @returns 
  */
 
-ColorTools.getRedComponent = function(color) {
+export function getRedComponent (color) {
     return color >> 16;
 }
 
-ColorTools.getGreenComponent = function(color) {
+export function getGreenComponent (color) {
     return color >> 8 & 0xff;
 }
 
-ColorTools.getBlueComponent = function(color) {
+export function getBlueComponent (color) {
     return color & 0xff;
 }
 
-ColorTools.getRedOffset = function(tintColor, amount) {
+export function getRedOffset (tintColor, amount) {
     var tintRed = ColorTools.getRedComponent(tintColor);
     return tintRed * amount;
 }
 
-ColorTools.getGreenOffset = function(tintColor, amount) {
+export function getGreenOffset (tintColor, amount) {
     var tintGreen = ColorTools.getGreenComponent(tintColor);
     return tintGreen * amount;
 }
 
-ColorTools.getBlueOffset = function(tintColor, amount) {
+export function getBlueOffset (tintColor, amount) {
     var tintBlue = ColorTools.getBlueComponent(tintColor);
     return tintBlue * amount;
 }
 
-ColorTools.getTintedColor = function (baseColor, tintColor, amount) {
+export function getTintedColor (baseColor, tintColor, amount) {
 		
     var red = ColorTools.getRedComponent(baseColor);
     var green = ColorTools.getGreenComponent(baseColor);
@@ -57,7 +57,7 @@ ColorTools.getTintedColor = function (baseColor, tintColor, amount) {
     
 }
 
-ColorTools.getInverseColor = function (baseColor) {
+export function getInverseColor (baseColor) {
         
     var red = ColorTools.getRedComponent(baseColor);
     var green = ColorTools.getGreenComponent(baseColor);
@@ -67,7 +67,7 @@ ColorTools.getInverseColor = function (baseColor) {
     
 }
 
-ColorTools.getBrightness = function(color) {
+export function getBrightness (color) {
             
     var redLevel = ColorTools.getRedComponent(color);
     var greenLevel = ColorTools.getGreenComponent(color);
@@ -77,7 +77,7 @@ ColorTools.getBrightness = function(color) {
     
 }
 
-ColorTools.getSaturatedColor = function(color, amount) {
+export function getSaturatedColor (color, amount) {
             
     amount = amount / 100;
 
@@ -93,17 +93,17 @@ ColorTools.getSaturatedColor = function(color, amount) {
     
 }
 
-ColorTools.interpolate = function(luma, comp, t) {
+export function interpolate (luma, comp, t) {
     return Math.min(1, Math.max(0, luma + (comp - luma) * t));
 }
 
-ColorTools.numberToHTMLColor = function (col) {
+export function numberToHTMLColor (col) {
     var c = col.toString(16);
     while (c.length < 6) c = "0" + c;
     return "#" + c;
 }
 
-ColorTools.HTMLColorToNumber = function(html) {
+export function HTMLColorToNumber (html) {
     return parseInt("0x" + html.split("#").join("").split("0x").join(""), 16);
 }
 

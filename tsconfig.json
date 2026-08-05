@@ -1,0 +1,16 @@
+{
+  //"noEmit": true,
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "esnext",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "rootDir": "./src",
+    "outDir": "./outDir",
+    "strictPropertyInitialization": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

@@ -1,5 +1,5 @@
 const config = {
-  entry: "./src/index.js",
+  entry: "./outdir/index.js",
 }
 
 export default config;

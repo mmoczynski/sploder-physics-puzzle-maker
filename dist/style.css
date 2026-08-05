@@ -1,0 +1,41 @@
+head, body {
+    padding: 0;
+    margin: 0;
+}
+
+
+#level-canvas {
+    border: 1px solid black;
+}
+
+.creator {
+    display: flex;
+    flex-wrap: wrap;
+    height: 100vh;
+    flex-direction: column;
+}
+
+.filebar {
+    display: flex;
+    width: 100%;
+    background: #830083;
+    color: white;
+    height: 60px;
+    flex-grow: 0;
+}
+
+.leveleditor {
+    display: flex;
+    flex-grow: 1;
+}
+
+.file-menu {
+    display: flex;
+    flex-direction: row;
+}
+
+.menu-option {
+    padding: 15px;
+    border-right: 1px solid #5d0063;
+    cursor: pointer;
+}

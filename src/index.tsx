@@ -124,7 +124,7 @@ function TrayCollection() {
     function clickGen(index) {
         return function() {
             setState(index);
-            alert(index);
+            //alert(index);
         }
     }
    
@@ -147,7 +147,7 @@ function TrayCollection() {
 
                         // Set class for tray depending on selection state
                         if(index === state) {
-                            s = "shown tray"  
+                            s = "shown tray"    
                         }
 
                         else {
@@ -169,15 +169,45 @@ function TrayCollection() {
 }
 
 function LevelBar() {
-    return <div></div>
+
+    var [targetActionState, setTargetActionState] = useState(null);
+
+    function generateClosure(arg) {
+        return function() {
+            setTargetActionState(arg);
+        }
+    }
+
+    function checkStateValue(arg) {
+        if(targetActionState === arg) {
+            return "tab-option selected"
+        }
+
+        else {
+            return "tab-option"
+        }
+    }
+
+    return (
+
+        <div className="levelbar">
+            <div className="tabs">
+                <div className={checkStateValue("new")} onClick={generateClosure("new")}>N</div>
+                <div className={checkStateValue("select")} onClick={generateClosure("select")}>S</div>
+                <div className={checkStateValue("multi")} onClick={generateClosure("multi")}>M</div>
+                <div className={checkStateValue("appearance")} onClick={generateClosure("appearance")}>A</div>
+                <div className={checkStateValue("sample")} onClick={generateClosure("sample")}>P</div>
+            </div>
+        </div>
+    );
 }
 
 
 const root = createRoot(document.getElementById('root') as Container);
 
-
+  -
 root.render(
-    <div className="creator"> 
+    <div className="creator">     
         <div className="filebar">
             <div className="file-menu">
                 <MenuOption innerText="New" />

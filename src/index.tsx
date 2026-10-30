@@ -3,11 +3,39 @@ import React, {useEffect, useRef, useState } from 'react';
 import { Container, createRoot } from 'react-dom/client';
 import ModelObject from './modelObject';
 import ColorGamut from './gamut';
-import { SHAPE_BOX, SHAPE_CIRCLE, SHAPE_HEX, SHAPE_PENT, SHAPE_POLY, SHAPE_RAMP, SHAPE_SQUARE, TOOL_DRAW, TOOL_FILL, TOOL_PAINT, TOOL_PEN, TOOL_PICK, TOOL_SELECT, TOOL_WINDOW } from './creatorUIStates';
+
+import * as creatorUIStates from './creatorUIStates';
 
 
 if(typeof globalThis === "object") {
     globalThis.ModelObject = ModelObject;
+}
+
+type EventStr = "levelBarObjectEdit";
+
+const events = {
+
+    levelBarObjectEdit: [],
+
+    on: function(eventStr:EventStr, callback) {
+        this.levelBarObjectEdit[eventStr].push(callback)
+    },
+
+    off: function(eventStr:EventStr, callback) {
+
+        this.levelBarObjectEdit[eventStr].splice(
+            this.levelBarObjectEdit[eventStr].indexOf(callback), 
+            1
+        );
+
+    },
+
+    call: function(eventStr:EventStr) {
+        for(let i = 0; this.levelBarObjectEdit[eventStr].length; i++) {
+            this.levelBarObjectEdit[eventStr]();
+        }
+    }
+
 }
 
 function MenuOption({innerText}) {
@@ -199,86 +227,107 @@ function SubmenuOption({setParentState, stateStr}) {
     )
 }
 
-function LevelBarSubmenu({icon, menuName}) {
+function LevelBarSubmenu({menuName, children}) {
 
     var [isOpenState, setIsOpenState] = useState(false);
-    var [optionState, setOptionState] = useState(icon);
+    var [optionState, setOptionState] = useState(children[0]);
+
+    var submenuOptions = (            
+        <div className={isOpenState ? "menu-options" : "menu-options hidden"}>
+            {
+                children.map(function(str){
+                    return <SubmenuOption setParentState={setOptionState} stateStr={str}></SubmenuOption>
+                })
+            }
+        </div>
+    ) 
 
     let styleObj = {
         backgroundImage: "url(" + "images/icons/" + optionState + ".svg" + ")"
     }
 
+    function handleSubmenuClick(event) {
+        setIsOpenState(!isOpenState)
+    }
+
     return(                    
-        <div className={menuName} onClick={()=> setIsOpenState(!isOpenState)}>
+        <div className={menuName} onClick={handleSubmenuClick}>
             <div className="menu-icon" style={styleObj}></div>   
-            <div className={isOpenState ? "menu-options" : "menu-options hidden"}>
-                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_CIRCLE}></SubmenuOption>
-                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_SQUARE}></SubmenuOption>
-                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_BOX}></SubmenuOption>
-                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_RAMP}></SubmenuOption>
-                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_PENT}></SubmenuOption>
-                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_HEX}></SubmenuOption>
-                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_POLY}></SubmenuOption>
-            </div>
+            {submenuOptions}
         </div>
     )
 }
 
 function LevelBar() {
 
-    var [targetActionState, setTargetActionState] = useState(TOOL_DRAW);
+    var [currentTabState, setTabState] = useState(creatorUIStates.TOOL_DRAW);
 
     return (
 
         <div className="levelbar">
             <div className="tabs">
-                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr={TOOL_DRAW}></LevelBarTab>
-                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr={TOOL_SELECT}></LevelBarTab>
-                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr={TOOL_WINDOW}></LevelBarTab>
-                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr={TOOL_PAINT}></LevelBarTab>
-                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr={TOOL_PICK}></LevelBarTab>
+                <LevelBarTab parentState={currentTabState} setParentState={setTabState} stateStr={creatorUIStates.TOOL_DRAW}></LevelBarTab>
+                <LevelBarTab parentState={currentTabState} setParentState={setTabState} stateStr={creatorUIStates.TOOL_SELECT}></LevelBarTab>
+                <LevelBarTab parentState={currentTabState} setParentState={setTabState} stateStr={creatorUIStates.TOOL_WINDOW}></LevelBarTab>
+                <LevelBarTab parentState={currentTabState} setParentState={setTabState} stateStr={creatorUIStates.TOOL_PAINT}></LevelBarTab>
+                <LevelBarTab parentState={currentTabState} setParentState={setTabState} stateStr={creatorUIStates.TOOL_PICK}></LevelBarTab>
             </div>
             <div className="containers">
-                <div className={targetActionState === TOOL_DRAW ? "container new" : "container new hidden"}>
-                    <LevelBarSubmenu icon={SHAPE_CIRCLE} menuName="new-shape-menu"></LevelBarSubmenu>
-                    <div className="motion-menu">
-                        <div className="menu-icon">Y</div>
-                        <div className="menu-options hidden">
-                            <div className="motion-menu-option regular">R</div>
-                            <div className="motion-menu-option circular">C</div>
-                            <div className="motion-menu-option no-rotate">N</div>
-                            <div className="motion-menu-option fixed">F</div>
-                        </div> 
-                    </div>
-                    <div className="material-menu">
-                        <div className="menu-icon">Z</div>  
-                        <div className="menu-options hidden">
-                            <div className="material-menu-option wood">W</div>
-                            <div className="material-menu-option steel">S</div>
-                            <div className="material-menu-option ice">I</div>
-                            <div className="material-menu-option rubber">R</div>
-                            <div className="material-menu-option glass">G</div>
-                            <div className="material-menu-option tire">T</div>
-                            <div className="material-menu-option air-balloon">A</div>
-                            <div className="material-menu-option helium-balloon">H</div>
-                            <div className="material-menu-option magnet">M</div>
-                            <div className="material-menu-option superball">S</div>
-                        </div>
-                    </div>
-                    <div className="strength-menu">
-                        <div className="menu-icon">A</div>
-                        <div className="menu-options hidden">
-                            <div className="motion-menu-option perm">P</div>
-                            <div className="motion-menu-option strong">S</div>
-                            <div className="motion-menu-option medium">M</div>
-                            <div className="motion-menu-option weak">W</div>
-                        </div>
-                    </div>
+                <div className={currentTabState === creatorUIStates.TOOL_DRAW ? "container new" : "container new hidden"}>
+                    <LevelBarSubmenu menuName="new-shape-menu">
+                        {[
+                            creatorUIStates.SHAPE_CIRCLE,
+                            creatorUIStates.SHAPE_SQUARE,
+                            creatorUIStates.SHAPE_BOX,
+                            creatorUIStates.SHAPE_RAMP,
+                            creatorUIStates.SHAPE_PENT,
+                            creatorUIStates.SHAPE_HEX,
+                            creatorUIStates.SHAPE_POLY
+                        ]}
+                    </LevelBarSubmenu>
+                    <LevelBarSubmenu menuName="motion-menu">
+                        {[
+                            creatorUIStates.MOVEMENT_FREE,
+                            creatorUIStates.MOVEMENT_PIN,
+                            creatorUIStates.MOVEMENT_SLIDE,
+                            creatorUIStates.MOVEMENT_STATIC
+                        ]}
+                    </LevelBarSubmenu>
+                    <LevelBarSubmenu menuName="material">
+                        {[ 
+                            creatorUIStates.MATERIAL_WOOD,
+                            creatorUIStates.MATERIAL_STEEL,
+                            creatorUIStates.MATERIAL_ICE,
+                            creatorUIStates.MATERIAL_RUBBER,
+                            creatorUIStates.MATERIAL_GLASS,
+                            creatorUIStates.MATERIAL_TIRE,
+                            creatorUIStates.MATERIAL_AIR_BALLOON,
+                            creatorUIStates.MATERIAL_HELIUM_BALLOON,
+                            creatorUIStates.MATERIAL_MAGNET,
+                            creatorUIStates.MATERIAL_SUPERBALL
+                        ]}
+                    </LevelBarSubmenu>
+                    <LevelBarSubmenu menuName="material">
+                        {[ 
+                            creatorUIStates.STRENGTH_PERM,
+                            creatorUIStates.STRENGTH_STRONG,
+                            creatorUIStates.STRENGTH_MEDIUM,
+                            creatorUIStates.STRENGTH_WEAK
+                        ]}
+                    </LevelBarSubmenu>
                 </div>
-                <div className="container select hidden"></div>
-                <div className="container multi hidden"></div>
-                <div className="container appearance hidden"></div>
-                <div className="container sample hidden"></div>
+                <div className={currentTabState === creatorUIStates.TOOL_SELECT ? "container select" : "container select hidden"}>
+                    <div className="button">Playfield</div>
+                    <div className="button">Background</div>
+                    <div className="button">Goals</div>
+                </div>
+                <div className={currentTabState === creatorUIStates.TOOL_WINDOW ? "container window" : "container window hidden"}>
+                    <div className="button">Playfield</div>
+                    <div className="button">Background</div>
+                    <div className="button">Goals</div>
+                </div>
+                <div className={currentTabState === creatorUIStates.TOOL_PAINT ? "container paint" : "container paint hidden"}></div>
+                <div className={currentTabState === creatorUIStates.TOOL_PICK ? "container pick" : "container pick hidden"}></div>
             </div>
         </div>
     );

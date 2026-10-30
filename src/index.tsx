@@ -170,6 +170,14 @@ function TrayCollection() {
     );
 }
 
+function LevelBarTab({parentState, setParentState, stateStr, innerText}) {
+    return (
+        <div className={parentState === stateStr ? "tab-option selected" : "tab-option"} onClick={ () => setParentState(stateStr) }>
+            {innerText}
+        </div>
+    )
+}
+
 function LevelBar() {
 
     var [targetActionState, setTargetActionState] = useState("new");
@@ -178,11 +186,11 @@ function LevelBar() {
 
         <div className="levelbar">
             <div className="tabs">
-                <div className={targetActionState === "new" ? "tab-option selected" : "tab-option"} onClick={ () => setTargetActionState("new") }>N</div>
-                <div className={targetActionState === "select" ? "tab-option selected" : "tab-option"} onClick={ () => setTargetActionState("select")}>S</div>
-                <div className={targetActionState === "multi" ? "tab-option selected" : "tab-option"} onClick={ () => setTargetActionState("multi") } >M</div>
-                <div className={targetActionState === "appearance" ? "tab-option selected" : "tab-option"} onClick={ () => setTargetActionState("appearance") }>A</div>
-                <div className={targetActionState === "sample" ? "tab-option selected" : "tab-option"} onClick={ () => setTargetActionState("sample") }>P</div>
+                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr="new" innerText="N"></LevelBarTab>
+                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr="select" innerText="S"></LevelBarTab>
+                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr="multi" innerText="M"></LevelBarTab>
+                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr="appearance" innerText="A"></LevelBarTab>
+                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr="sample" innerText="P"></LevelBarTab>
             </div>
             <div className="containers">
                 <div className="container new">

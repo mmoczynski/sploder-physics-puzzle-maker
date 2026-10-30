@@ -3,6 +3,7 @@ import React, {useEffect, useRef, useState } from 'react';
 import { Container, createRoot } from 'react-dom/client';
 import ModelObject from './modelObject';
 import ColorGamut from './gamut';
+import { SHAPE_BOX, SHAPE_CIRCLE, SHAPE_HEX, SHAPE_PENT, SHAPE_POLY, SHAPE_RAMP, SHAPE_SQUARE, TOOL_DRAW, TOOL_FILL, TOOL_PAINT, TOOL_PEN, TOOL_PICK, TOOL_SELECT, TOOL_WINDOW } from './creatorUIStates';
 
 
 if(typeof globalThis === "object") {
@@ -170,42 +171,76 @@ function TrayCollection() {
     );
 }
 
-function LevelBarTab({parentState, setParentState, stateStr, innerText}) {
+function LevelBarTab({parentState, setParentState, stateStr}) {
+
+    let styleObj = {
+        backgroundImage: "url(" + "images/icons/" + stateStr + ".svg" + ")"
+    }
+
     return (
-        <div className={parentState === stateStr ? "tab-option selected" : "tab-option"} onClick={ () => setParentState(stateStr) }>
-            {innerText}
+        <div className={parentState === stateStr ? "tab-option selected" : "tab-option"} onClick={ () => setParentState(stateStr) } style={styleObj}></div>
+    )
+}
+
+/**
+ * Submenu Option
+ * @param param0 
+ * @returns
+ */
+
+function SubmenuOption({setParentState, stateStr}) {
+
+    let styleObj = {
+        backgroundImage: "url(" + "images/icons/" + stateStr + ".svg" + ")"
+    }
+
+    return (
+        <div onClick={() => setParentState(stateStr)} className="shape-menu-option" style={styleObj}></div>
+    )
+}
+
+function LevelBarSubmenu({icon, menuName}) {
+
+    var [isOpenState, setIsOpenState] = useState(false);
+    var [optionState, setOptionState] = useState(icon);
+
+    let styleObj = {
+        backgroundImage: "url(" + "images/icons/" + optionState + ".svg" + ")"
+    }
+
+    return(                    
+        <div className={menuName} onClick={()=> setIsOpenState(!isOpenState)}>
+            <div className="menu-icon" style={styleObj}></div>   
+            <div className={isOpenState ? "menu-options" : "menu-options hidden"}>
+                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_CIRCLE}></SubmenuOption>
+                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_SQUARE}></SubmenuOption>
+                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_BOX}></SubmenuOption>
+                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_RAMP}></SubmenuOption>
+                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_PENT}></SubmenuOption>
+                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_HEX}></SubmenuOption>
+                <SubmenuOption setParentState={setOptionState} stateStr={SHAPE_POLY}></SubmenuOption>
+            </div>
         </div>
     )
 }
 
 function LevelBar() {
 
-    var [targetActionState, setTargetActionState] = useState("new");
+    var [targetActionState, setTargetActionState] = useState(TOOL_DRAW);
 
     return (
 
         <div className="levelbar">
             <div className="tabs">
-                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr="new" innerText="N"></LevelBarTab>
-                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr="select" innerText="S"></LevelBarTab>
-                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr="multi" innerText="M"></LevelBarTab>
-                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr="appearance" innerText="A"></LevelBarTab>
-                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr="sample" innerText="P"></LevelBarTab>
+                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr={TOOL_DRAW}></LevelBarTab>
+                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr={TOOL_SELECT}></LevelBarTab>
+                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr={TOOL_WINDOW}></LevelBarTab>
+                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr={TOOL_PAINT}></LevelBarTab>
+                <LevelBarTab parentState={targetActionState} setParentState={setTargetActionState} stateStr={TOOL_PICK}></LevelBarTab>
             </div>
             <div className="containers">
-                <div className="container new">
-                    <div className="new-shape-menu">
-                        <div className="menu-icon">X</div>
-                        <div className="menu-options hidden">
-                            <div className="shape-menu-option circle">C</div>
-                            <div className="shape-menu-option square">S</div>
-                            <div className="shape-menu-option rectangle">R</div>
-                            <div className="shape-menu-option right-triangle">T</div>
-                            <div className="shape-menu-option right-pentagon">P</div>
-                            <div className="shape-menu-option right-hexagon">H</div>
-                            <div className="shape-menu-option polygon">P</div>
-                        </div>
-                    </div>
+                <div className={targetActionState === TOOL_DRAW ? "container new" : "container new hidden"}>
+                    <LevelBarSubmenu icon={SHAPE_CIRCLE} menuName="new-shape-menu"></LevelBarSubmenu>
                     <div className="motion-menu">
                         <div className="menu-icon">Y</div>
                         <div className="menu-options hidden">
@@ -216,7 +251,7 @@ function LevelBar() {
                         </div> 
                     </div>
                     <div className="material-menu">
-                        <div className="menu-icon">Z</div>
+                        <div className="menu-icon">Z</div>  
                         <div className="menu-options hidden">
                             <div className="material-menu-option wood">W</div>
                             <div className="material-menu-option steel">S</div>
@@ -240,10 +275,10 @@ function LevelBar() {
                         </div>
                     </div>
                 </div>
-                <div className="container select"></div>
-                <div className="container multi"></div>
-                <div className="container appearance"></div>
-                <div className="container sample"></div>
+                <div className="container select hidden"></div>
+                <div className="container multi hidden"></div>
+                <div className="container appearance hidden"></div>
+                <div className="container sample hidden"></div>
             </div>
         </div>
     );

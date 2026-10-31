@@ -5,6 +5,7 @@ import ModelObject from './modelObject';
 import ColorGamut from './gamut';
 
 import * as creatorUIStates from './creatorUIStates';
+import { TrayCollection } from './tray';
 
 
 if(typeof globalThis === "object") {
@@ -54,161 +55,8 @@ function RemoveLevel() {
     return <div></div>
 }
 
-function Tray({children, hidden}) {
-    return (
-        <div className={"tray" + (hidden === "true" ? " hidden" : " shown")}> 
-            <ul className="tray-contents">
-                {children}
-            </ul>
-        </div>
-    )
-}
 
-function TrayItem({name}) {
-    return <li>{name}</li>
-}
 
-interface TrayItemDefinition {
-    title: string
-}
-
-interface TrayDefinition {
-
-    /*** Name that will appear in left bar */
-    title: string,
-    items: Array<TrayItemDefinition>
-}
-
-const trayDefinitions:Array<TrayDefinition> = [
-
-    {
-        title: "Prefabs",
-        items: [
-            { title : "Player" },
-            { title : "Baddie" },
-            { title : "Platform" },
-            { title : "Coin" },
-            { title : "Spikes" },
-            { title : "ExtraLife" },
-            { title : "KeyDoor" },
-            { title : "Ship" },
-            { title : "Turret" },
-            { title : "Robot" },
-            { title : "Balloon" },
-            { title : "TurretCar" }
-        ]
-    },
-
-    {
-        title: "Physics",
-        items: [
-            { title:"Motor" },
-            { title:"Bouncer" },
-            { title:"PinJoint" },
-            { title:"Groove" },
-            { title:"Spring-T" },
-            { title:"Spring-L" },
-            { title:"GearJoint" }
-        ]
-    },
-
-    {
-        title: "Controls",
-        items: [
-            { title: "Rotator" },
-            { title: "Mover" },
-            { title: "Slider" },
-            { title: "Jumper" },
-            { title: "Arcade Mover" },
-            { title: "Selector" },
-            { title: "Adder" },
-            { title: "Launcher" },
-            { title: "Aimer" },
-            { title: "Dragger" },
-            { title: "Thruster" },
-            { title: "Clicker" }
-        ]
-    },
-
-    {
-        title: "Widgets",
-        items: [
-            { title: "Elevator" },
-            { title: "Spawner" },
-            { title: "Connect" },
-            { title: "Factory" },
-            { title: "EventLink" },
-            { title: "Switcher" },
-            { title: "E-Magnet" },
-            { title: "Pointer" },
-            { title: "Propeller" }
-        ]
-    }
-
-];
-
-function TrayCollection() {
-    
-    var [state, setState] = useState(0);
-
-    // Closure for index
-    function clickGen(index) {
-        return function() {
-            setState(index);
-            //alert(index);
-        }
-    }
-   
-    return(
-        <div className="tray-collection col left">
-            <ul className="tray-tabs">
-                {
-                    trayDefinitions.map(function(trayDefinition, index){
-                        return <div onClick={clickGen(index)} className="tray-name">{trayDefinition.title}</div>
-                    })
-                }
-            </ul>
-            <div className="tray-containers">
-                {
-
-                    // Interate through tray definitions to create elements for each using Array.map method
-                    trayDefinitions.map(function(trayDefinition, index){
-
-                        let s:string;
-
-                        // Set class for tray depending on selection state
-                        if(index === state) {
-                            s = "shown tray"    
-                        }
-
-                        else {
-                            s = "hidden tray"
-                        }
-
-                        return (
-                            <ul className={s}>
-                                {trayDefinition.items.map(function(trayItemDefinition){
-                                    return <li>{trayItemDefinition.title}</li>
-                                })}
-                            </ul>
-                        )
-                    })
-                }
-            </div>
-        </div>
-    );
-}
-
-function LevelBarTab({parentState, setParentState, stateStr}) {
-
-    let styleObj = {
-        backgroundImage: "url(" + "images/icons/" + stateStr + ".svg" + ")"
-    }
-
-    return (
-        <div className={parentState === stateStr ? "tab-option selected" : "tab-option"} onClick={ () => setParentState(stateStr) } style={styleObj}></div>
-    )
-}
 
 /**
  * Submenu Option
@@ -227,54 +75,85 @@ function SubmenuOption({setParentState, stateStr}) {
     )
 }
 
-function LevelBarSubmenu({menuName, children}) {
+function LevelBarSubmenu({stateStr, children, levelBarState, setLevelBarState}) {
 
     var [isOpenState, setIsOpenState] = useState(false);
     var [optionState, setOptionState] = useState(children[0]);
 
-    var submenuOptions = (            
-        <div className={isOpenState ? "menu-options" : "menu-options hidden"}>
-            {
-                children.map(function(str){
-                    return <SubmenuOption setParentState={setOptionState} stateStr={str}></SubmenuOption>
-                })
-            }
-        </div>
-    ) 
 
     let styleObj = {
         backgroundImage: "url(" + "images/icons/" + optionState + ".svg" + ")"
     }
 
     function handleSubmenuClick(event) {
+
         setIsOpenState(!isOpenState)
+
+        if(isOpenState) {
+            setLevelBarState(
+                {
+                    ...levelBarState,
+                    menuBarSubmenuStateStr: stateStr
+                }
+            )
+        }
+  
+
     }
 
     return(                    
-        <div className={menuName} onClick={handleSubmenuClick}>
+        <div className={stateStr} onClick={handleSubmenuClick}>
             <div className="menu-icon" style={styleObj}></div>   
-            {submenuOptions}
+            <div className={(isOpenState) ? "menu-options" : "menu-options hidden"}>
+                {
+                    children.map(function(str){
+                        return <SubmenuOption setParentState={setOptionState} stateStr={str}></SubmenuOption>
+                    })
+                }
+            </div>
         </div>
+    )
+}
+
+function LevelBarTab({levelBarState, setLevelBarState, stateStr}) {
+
+    let styleObj = {
+        backgroundImage: "url(" + "images/icons/" + stateStr + ".svg" + ")"
+    }
+
+    function handleClick() {
+        setLevelBarState({
+            ...levelBarState,
+            tab: stateStr
+        });
+    }
+
+    let className = (levelBarState.tab === stateStr ? "tab-option selected" : "tab-option");
+
+    return (
+        <div className={className} onClick={handleClick} style={styleObj}></div>
     )
 }
 
 function LevelBar() {
 
-    var [currentTabState, setTabState] = useState(creatorUIStates.TOOL_DRAW);
+    var [levelBarState, setLevelBarState] = useState({
+        tab: creatorUIStates.TOOL_DRAW
+    });
 
     return (
 
         <div className="levelbar">
             <div className="tabs">
-                <LevelBarTab parentState={currentTabState} setParentState={setTabState} stateStr={creatorUIStates.TOOL_DRAW}></LevelBarTab>
-                <LevelBarTab parentState={currentTabState} setParentState={setTabState} stateStr={creatorUIStates.TOOL_SELECT}></LevelBarTab>
-                <LevelBarTab parentState={currentTabState} setParentState={setTabState} stateStr={creatorUIStates.TOOL_WINDOW}></LevelBarTab>
-                <LevelBarTab parentState={currentTabState} setParentState={setTabState} stateStr={creatorUIStates.TOOL_PAINT}></LevelBarTab>
-                <LevelBarTab parentState={currentTabState} setParentState={setTabState} stateStr={creatorUIStates.TOOL_PICK}></LevelBarTab>
+                <LevelBarTab levelBarState={levelBarState} setLevelBarState={setLevelBarState} stateStr={creatorUIStates.TOOL_DRAW}></LevelBarTab>
+                <LevelBarTab levelBarState={levelBarState} setLevelBarState={setLevelBarState} stateStr={creatorUIStates.TOOL_SELECT}></LevelBarTab>
+                <LevelBarTab levelBarState={levelBarState} setLevelBarState={setLevelBarState} stateStr={creatorUIStates.TOOL_WINDOW}></LevelBarTab>
+                <LevelBarTab levelBarState={levelBarState} setLevelBarState={setLevelBarState} stateStr={creatorUIStates.TOOL_PAINT}></LevelBarTab>
+                <LevelBarTab levelBarState={levelBarState} setLevelBarState={setLevelBarState} stateStr={creatorUIStates.TOOL_PICK}></LevelBarTab>
             </div>
             <div className="containers">
-                <div className={currentTabState === creatorUIStates.TOOL_DRAW ? "container new" : "container new hidden"}>
-                    <LevelBarSubmenu menuName="new-shape-menu">
+                <div className={levelBarState.tab === creatorUIStates.TOOL_DRAW ? "container new" : "container new hidden"}>
+                    <LevelBarSubmenu levelBarState={levelBarState} setLevelBarState={setLevelBarState} stateStr="new-shape-menu">
                         {[
                             creatorUIStates.SHAPE_CIRCLE,
                             creatorUIStates.SHAPE_SQUARE,
@@ -285,7 +164,7 @@ function LevelBar() {
                             creatorUIStates.SHAPE_POLY
                         ]}
                     </LevelBarSubmenu>
-                    <LevelBarSubmenu menuName="motion-menu">
+                    <LevelBarSubmenu levelBarState={levelBarState} setLevelBarState={setLevelBarState} stateStr="motion-menu">
                         {[
                             creatorUIStates.MOVEMENT_FREE,
                             creatorUIStates.MOVEMENT_PIN,
@@ -293,7 +172,7 @@ function LevelBar() {
                             creatorUIStates.MOVEMENT_STATIC
                         ]}
                     </LevelBarSubmenu>
-                    <LevelBarSubmenu menuName="material">
+                    <LevelBarSubmenu levelBarState={levelBarState} setLevelBarState={setLevelBarState} stateStr="material">
                         {[ 
                             creatorUIStates.MATERIAL_WOOD,
                             creatorUIStates.MATERIAL_STEEL,
@@ -307,7 +186,7 @@ function LevelBar() {
                             creatorUIStates.MATERIAL_SUPERBALL
                         ]}
                     </LevelBarSubmenu>
-                    <LevelBarSubmenu menuName="material">
+                    <LevelBarSubmenu levelBarState={levelBarState} setLevelBarState={setLevelBarState} stateStr="strength">
                         {[ 
                             creatorUIStates.STRENGTH_PERM,
                             creatorUIStates.STRENGTH_STRONG,
@@ -316,18 +195,18 @@ function LevelBar() {
                         ]}
                     </LevelBarSubmenu>
                 </div>
-                <div className={currentTabState === creatorUIStates.TOOL_SELECT ? "container select" : "container select hidden"}>
+                <div className={levelBarState.tab === creatorUIStates.TOOL_SELECT ? "container select" : "container select hidden"}>
                     <div className="button">Playfield</div>
                     <div className="button">Background</div>
                     <div className="button">Goals</div>
                 </div>
-                <div className={currentTabState === creatorUIStates.TOOL_WINDOW ? "container window" : "container window hidden"}>
+                <div className={levelBarState.tab === creatorUIStates.TOOL_WINDOW ? "container window" : "container window hidden"}>
                     <div className="button">Playfield</div>
                     <div className="button">Background</div>
                     <div className="button">Goals</div>
                 </div>
-                <div className={currentTabState === creatorUIStates.TOOL_PAINT ? "container paint" : "container paint hidden"}></div>
-                <div className={currentTabState === creatorUIStates.TOOL_PICK ? "container pick" : "container pick hidden"}></div>
+                <div className={levelBarState.tab === creatorUIStates.TOOL_PAINT ? "container paint" : "container paint hidden"}></div>
+                <div className={levelBarState.tab === creatorUIStates.TOOL_PICK ? "container pick" : "container pick hidden"}></div>
             </div>
         </div>
     );

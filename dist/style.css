@@ -89,7 +89,9 @@ head, body {
 
 .levelbar .containers {
     display: flex;
-    
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 2px solid #888;
 }
 
 .levelbar .tabs > *, .levelbar .container .submenu, .shape-menu-option, .menu-icon {

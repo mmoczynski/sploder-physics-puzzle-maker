@@ -7,37 +7,10 @@ import ColorGamut from './gamut';
 import * as creatorUIStates from './creatorUIStates';
 import { TrayCollection } from './tray';
 
-
 if(typeof globalThis === "object") {
     globalThis.ModelObject = ModelObject;
 }
 
-type EventStr = "levelBarObjectEdit";
-
-const events = {
-
-    levelBarObjectEdit: [],
-
-    on: function(eventStr:EventStr, callback) {
-        this.levelBarObjectEdit[eventStr].push(callback)
-    },
-
-    off: function(eventStr:EventStr, callback) {
-
-        this.levelBarObjectEdit[eventStr].splice(
-            this.levelBarObjectEdit[eventStr].indexOf(callback), 
-            1
-        );
-
-    },
-
-    call: function(eventStr:EventStr) {
-        for(let i = 0; this.levelBarObjectEdit[eventStr].length; i++) {
-            this.levelBarObjectEdit[eventStr]();
-        }
-    }
-
-}
 
 function MenuOption({innerText}) {
     return <div className="menu-option">{innerText}</div>
@@ -62,7 +35,7 @@ function generateStyleObj(arg) {
 
 function TabOption({tabState, setTabState, tabStateID}) {
     return (
-        <div className={ tabState === tabStateID ? "tab-option selected" : "tab-option"} style={ generateStyleObj(tabStateID) } onClick={ () => setTabState(tabStateID) }>
+        <div className={ tabState === tabStateID ? "tab-option selected" : "tab-option"} style={ generateStyleObj(tabStateID) } onClick={ () => setTabState({...tabState, tab: tabStateID}) }>
         </div>
     )
 }
@@ -72,11 +45,24 @@ function TabOption({tabState, setTabState, tabStateID}) {
  * The `submenuStateID` parameter is what the value of what the `stateSetterForSubmenu` will be.
  */
 
-function SubmenuOption({submenuStateID, stateSetterForSubmenu, submenuStateSetter}) {
+type SubmenuString = "shape" | "movement" | "material" | "strength" | "";
+
+type SubmenuOptionArgs = {
+    parentMenuID:SubmenuString, 
+    submenuStateID: string, 
+    levelBarStateSetter:Function,
+    levelBarState
+}
+
+function SubmenuOption({parentMenuID, submenuStateID, levelBarStateSetter, levelBarState}:SubmenuOptionArgs) {
 
     function f() {
-        submenuStateSetter("");
-        stateSetterForSubmenu(submenuStateID);
+        levelBarStateSetter({
+            ...levelBarState,
+            [parentMenuID]: submenuStateID
+        })
+
+        console.log(levelBarState);
     }
 
     return <div className="shape-menu-option" style={generateStyleObj(submenuStateID)} onClick={f}></div>
@@ -84,102 +70,111 @@ function SubmenuOption({submenuStateID, stateSetterForSubmenu, submenuStateSette
 
 function LevelBar() {
 
-    // State for tabs
-    var [tabState, setTabState] = useState(creatorUIStates.TOOL_DRAW);
+    /**
+     * Object for traking state of level bar
+     * The tab property is used to track if the user clicked on the draw, select, multiselect/window, paint and pick tool
+     * The 
+     * 
+     * It uses braket notation for dynamic keys
+     */
 
-    // Menu for submenu that is being selected
-    var [submenuState, setSubmenuState] = useState("");
+    var [state, setState] = useState({
 
-    // States for submenu dropdowns
-    var [shapeMenuState, setShapeMenuState] = useState(creatorUIStates.SHAPE_CIRCLE);
-    var [movementMenuState, setMovementMenuState] = useState(null);
-    var [materialMenuState, setMaterialMenuState] = useState(null);
-    var [strengthMenuState, setStrengthMenuState] = useState(null);
+        tab: creatorUIStates.TOOL_DRAW,
+        currentSubmenu: "",
+
+        // Draw tool submenus
+        shape: creatorUIStates.SHAPE_CIRCLE,
+        movement: creatorUIStates.MOVEMENT_FREE,
+        material: creatorUIStates.MATERIAL_WOOD,
+        strength: creatorUIStates.STRENGTH_PERM
+
+    });
 
     return (
 
         <div className="levelbar">
             <div className="tabs">
-                <TabOption tabState={tabState} setTabState={setTabState} tabStateID={creatorUIStates.TOOL_DRAW}></TabOption> 
-                <TabOption tabState={tabState} setTabState={setTabState} tabStateID={creatorUIStates.TOOL_SELECT}></TabOption>
-                <TabOption tabState={tabState} setTabState={setTabState} tabStateID={creatorUIStates.TOOL_WINDOW}></TabOption>
-                <TabOption tabState={tabState} setTabState={setTabState} tabStateID={creatorUIStates.TOOL_PAINT}></TabOption>
-                <TabOption tabState={tabState} setTabState={setTabState} tabStateID={creatorUIStates.TOOL_PICK}></TabOption>
+                <TabOption tabState={state} setTabState={setState} tabStateID={creatorUIStates.TOOL_DRAW}></TabOption> 
+                <TabOption tabState={state} setTabState={setState} tabStateID={creatorUIStates.TOOL_SELECT}></TabOption>
+                <TabOption tabState={state} setTabState={setState} tabStateID={creatorUIStates.TOOL_WINDOW}></TabOption>
+                <TabOption tabState={state} setTabState={setState} tabStateID={creatorUIStates.TOOL_PAINT}></TabOption>
+                <TabOption tabState={state} setTabState={setState} tabStateID={creatorUIStates.TOOL_PICK}></TabOption>
             </div>
             <div className="containers">
-                <div className={tabState === creatorUIStates.TOOL_DRAW ? "container new" : "container new hidden"}>
+                <div className={state.tab === creatorUIStates.TOOL_DRAW ? "container new" : "container new hidden"}>
 
-                    <div className="new-shape-menu">
+                    <div className="submenu">
                         
-                        <div className="menu-icon" style={generateStyleObj(shapeMenuState)} onClick={ () => setSubmenuState("new-shape-menu") }></div>
+                        <div className="menu-icon" style={generateStyleObj(state["shape"])} onClick={ () => setState({...state, currentSubmenu: "shape"}) }></div>
 
-                        <div className={ submenuState === "new-shape-menu" ? "menu-options" : "menu-options hidden"}>
-                            <SubmenuOption submenuStateSetter={setSubmenuState} submenuStateID={creatorUIStates.SHAPE_CIRCLE} stateSetterForSubmenu={setShapeMenuState}></SubmenuOption>
-                            <SubmenuOption submenuStateSetter={setSubmenuState} submenuStateID={creatorUIStates.SHAPE_SQUARE} stateSetterForSubmenu={setShapeMenuState}></SubmenuOption>
-                            <SubmenuOption submenuStateSetter={setSubmenuState} submenuStateID={creatorUIStates.SHAPE_BOX} stateSetterForSubmenu={setShapeMenuState}></SubmenuOption>
-                            <SubmenuOption submenuStateSetter={setSubmenuState} submenuStateID={creatorUIStates.SHAPE_RAMP} stateSetterForSubmenu={setShapeMenuState}></SubmenuOption>
-                            <SubmenuOption submenuStateSetter={setSubmenuState} submenuStateID={creatorUIStates.SHAPE_PENT} stateSetterForSubmenu={setShapeMenuState}></SubmenuOption>
-                            <SubmenuOption submenuStateSetter={setSubmenuState} submenuStateID={creatorUIStates.SHAPE_HEX} stateSetterForSubmenu={setShapeMenuState}></SubmenuOption>
-                            <SubmenuOption submenuStateSetter={setSubmenuState} submenuStateID={creatorUIStates.SHAPE_POLY} stateSetterForSubmenu={setShapeMenuState}></SubmenuOption>
+                        <div className={ state.currentSubmenu === "shape" ? "menu-options" : "menu-options hidden"}>
+                            <SubmenuOption parentMenuID="shape" submenuStateID={creatorUIStates.SHAPE_CIRCLE} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="shape" submenuStateID={creatorUIStates.SHAPE_SQUARE} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="shape" submenuStateID={creatorUIStates.SHAPE_BOX} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="shape" submenuStateID={creatorUIStates.SHAPE_RAMP} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="shape" submenuStateID={creatorUIStates.SHAPE_PENT} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="shape" submenuStateID={creatorUIStates.SHAPE_HEX} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="shape" submenuStateID={creatorUIStates.SHAPE_POLY} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
                         </div>
 
                     </div>
 
-                    <div className="movement-menu">
+                    <div className="submenu">
 
-                        <div className="menu-icon" style={generateStyleObj(creatorUIStates.MOVEMENT_FREE)} onClick={ () => setSubmenuState("movement-menu")} ></div>
+                        <div className="menu-icon" style={generateStyleObj(state["movement"])} onClick={ () => setState({...state, currentSubmenu: "movement"}) }></div>
 
-                        <div className={ submenuState === "movement-menu" ? "menu-options" : "menu-options hidden"}>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MOVEMENT_FREE)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MOVEMENT_PIN)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MOVEMENT_SLIDE)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MOVEMENT_STATIC)}></div>
+                        <div className={ state.currentSubmenu === "movement" ? "menu-options" : "menu-options hidden"}>
+                            <SubmenuOption parentMenuID="movement" submenuStateID={creatorUIStates.MOVEMENT_FREE} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="movement" submenuStateID={creatorUIStates.MOVEMENT_PIN} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="movement" submenuStateID={creatorUIStates.MOVEMENT_SLIDE} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="movement" submenuStateID={creatorUIStates.MOVEMENT_STATIC} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
                         </div>
 
                     </div>  
-                    <div className="material-menu">
+                    <div className="submenu">
 
-                        <div className="menu-icon" style={generateStyleObj(creatorUIStates.MATERIAL_WOOD)} onClick={ () => setSubmenuState("material-menu")}></div>
+                        <div className="menu-icon" style={generateStyleObj(state["material"])} onClick={ () => setState({...state, currentSubmenu: "material"}) }></div>
 
-                        <div className={ submenuState === "material-menu" ? "menu-options" : "menu-options hidden"}>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MATERIAL_WOOD)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MATERIAL_STEEL)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MATERIAL_ICE)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MATERIAL_RUBBER)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MATERIAL_GLASS)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MATERIAL_TIRE)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MATERIAL_AIR_BALLOON)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MATERIAL_HELIUM_BALLOON)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MATERIAL_MAGNET)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.MATERIAL_SUPERBALL)}></div>
+                        <div className={ state.currentSubmenu === "material" ? "menu-options" : "menu-options hidden"}>
+                            <SubmenuOption parentMenuID="material" submenuStateID={creatorUIStates.MATERIAL_WOOD} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="material" submenuStateID={creatorUIStates.MATERIAL_STEEL} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="material" submenuStateID={creatorUIStates.MATERIAL_ICE} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="material" submenuStateID={creatorUIStates.MATERIAL_RUBBER} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="material" submenuStateID={creatorUIStates.MATERIAL_GLASS} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="material" submenuStateID={creatorUIStates.MATERIAL_TIRE} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="material" submenuStateID={creatorUIStates.MATERIAL_AIR_BALLOON} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="material" submenuStateID={creatorUIStates.MATERIAL_HELIUM_BALLOON} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="material" submenuStateID={creatorUIStates.MATERIAL_MAGNET} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="material" submenuStateID={creatorUIStates.MATERIAL_SUPERBALL} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
                         </div>
 
                     </div>
-                    <div className="strength-menu">
+                    <div className="submenu">
 
-                        <div className="menu-icon" style={generateStyleObj(creatorUIStates.STRENGTH_PERM)} onClick={ () => setSubmenuState("strength-menu")}></div>
+                        <div className="menu-icon" style={generateStyleObj(state["strength"])} onClick={ () => setState({...state, currentSubmenu: "strength"}) }></div>
 
-                        <div className={ submenuState === "strength-menu" ? "menu-options" : "menu-options hidden"}>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.STRENGTH_PERM)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.STRENGTH_STRONG)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.STRENGTH_MEDIUM)}></div>
-                            <div className="shape-menu-option" style={generateStyleObj(creatorUIStates.STRENGTH_WEAK)}></div>
+                        <div className={ state.currentSubmenu === "strength" ? "menu-options" : "menu-options hidden"}>
+                            <SubmenuOption parentMenuID="strength" submenuStateID={creatorUIStates.STRENGTH_PERM} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="strength" submenuStateID={creatorUIStates.STRENGTH_STRONG} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="strength" submenuStateID={creatorUIStates.STRENGTH_MEDIUM} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
+                            <SubmenuOption parentMenuID="strength" submenuStateID={creatorUIStates.STRENGTH_WEAK} levelBarStateSetter={setState} levelBarState={state}></SubmenuOption>
                         </div>
 
                     </div>
                 </div>
-                <div className={tabState === creatorUIStates.TOOL_SELECT ? "container select" : "container select hidden"}>
+                <div className={state.tab === creatorUIStates.TOOL_SELECT ? "container select" : "container select hidden"}>
                     <div className="button">Playfield</div>
                     <div className="button">Background</div>
                     <div className="button">Goals</div>
                 </div>
-                <div className={tabState === creatorUIStates.TOOL_WINDOW ? "container window" : "container window hidden"}>
+                <div className={state.tab === creatorUIStates.TOOL_WINDOW ? "container window" : "container window hidden"}>
                     <div className="button">Playfield</div>
                     <div className="button">Background</div>
                     <div className="button">Goals</div>
                 </div>
-                <div className={tabState === creatorUIStates.TOOL_PAINT ? "container paint" : "container paint hidden"}></div>
-                <div className={tabState === creatorUIStates.TOOL_PICK ? "container pick" : "container pick hidden"}></div>
+                <div className={state.tab === creatorUIStates.TOOL_PAINT ? "container paint" : "container paint hidden"}></div>
+                <div className={state.tab === creatorUIStates.TOOL_PICK ? "container pick" : "container pick hidden"}></div>
             </div>
         </div>
     );
